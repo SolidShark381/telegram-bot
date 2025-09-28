@@ -21,7 +21,7 @@ async def start_command(update, context):
         "/discord - Discord сервер\n"
         "/tiktok - TikTok разработчика\n"
         "/help - Помощь\n\n"
-        "⚡ Напиши любое сообщение для получения ссылок!"
+        "⚡ Напиши любое сообщение для получения ссылок)"
     )
 
 async def help_command(update, context):
