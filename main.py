@@ -43,7 +43,7 @@ def health():
 def ping():
     return "pong"
 
-# Функции бота (оставьте ваши существующие функции)
+# Функции бота
 def get_uptime():
     seconds = int(time.time() - start_time)
     hours = seconds // 3600
@@ -86,8 +86,8 @@ def track_user(update, context):
     
     return user_name, is_new_user
 
-# Конфигурация
-TOKEN = "8239093462:AAHx0SXFXUu45qvCTmz2PwQdPgggtxipot0"
+# КОНФИГУРАЦИЯ
+TOKEN = os.environ.get('BOT_TOKEN', "8239093462:AAHx0SXFXUu45qvCTmz2PwQdPgggtxipot0")
 DISCORD_LINK = "https://discord.gg/xesWFVH59m"
 TIKTOK_LINK = "https://www.tiktok.com/@jordjostar52"
 
@@ -95,7 +95,7 @@ TIKTOK_LINK = "https://www.tiktok.com/@jordjostar52"
 start_time = time.time()
 users_db = load_users()
 
-# Ваши команды бота (вставьте свои команды)
+# Команды бота (совместимые с версией 20.x)
 async def start_command(update, context):
     user_name, is_new_user = track_user(update, context)
     uptime = get_uptime()
@@ -160,25 +160,32 @@ def main():
     flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # Создаем и настраиваем бота
-    bot_app = Application.builder().token(TOKEN).build()
-    
-    # Добавляем обработчики
-    bot_app.add_handler(CommandHandler("start", start_command))
-    bot_app.add_handler(CommandHandler("help", help_command))
-    bot_app.add_handler(CommandHandler("discord", discord_command))
-    bot_app.add_handler(CommandHandler("tiktok", tiktok_command))
-    bot_app.add_handler(CommandHandler("stats", stats_command))
-    bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_all_messages))
-    
-    print("=" * 50)
-    print("🤖 Бот запущен на Render.com!")
-    print(f"👥 Пользователей: {len(users_db)}")
-    print("🌐 Web сервер: http://0.0.0.0:10000")
-    print("=" * 50)
-    
-    # Запускаем бота
-    bot_app.run_polling()
+    try:
+        # Создаем и настраиваем бота (совместимо с версией 20.x)
+        application = Application.builder().token(TOKEN).build()
+        
+        # Добавляем обработчики
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CommandHandler("discord", discord_command))
+        application.add_handler(CommandHandler("tiktok", tiktok_command))
+        application.add_handler(CommandHandler("stats", stats_command))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_all_messages))
+        
+        print("=" * 50)
+        print("🤖 Бот запущен на Render.com!")
+        print(f"👥 Пользователей: {len(users_db)}")
+        print("🌐 Web сервер: http://0.0.0.0:10000")
+        print("=" * 50)
+        
+        # Запускаем бота
+        application.run_polling()
+        
+    except Exception as e:
+        print(f"❌ Ошибка запуска бота: {e}")
+        print("🔄 Перезапуск через 10 секунд...")
+        time.sleep(10)
+        main()
 
 if __name__ == '__main__':
     main()
