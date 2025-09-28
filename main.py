@@ -5,9 +5,13 @@ import time
 import json
 import os
 import logging
+import asyncio
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 app = Flask(__name__)
@@ -95,7 +99,7 @@ TIKTOK_LINK = "https://www.tiktok.com/@jordjostar52"
 start_time = time.time()
 users_db = load_users()
 
-# Команды бота (совместимые с версией 20.x)
+# Команды бота
 async def start_command(update, context):
     user_name, is_new_user = track_user(update, context)
     uptime = get_uptime()
@@ -153,15 +157,18 @@ async def handle_all_messages(update, context):
     await update.message.reply_text(message, parse_mode='Markdown')
 
 def run_flask():
-    app.run(host='0.0.0.0', port=10000, debug=False)
-
-def main():
-    # Запускаем Flask в отдельном потоке
-    flask_thread = Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    
+    """Запускает Flask сервер на случайном порту"""
     try:
-        # Создаем и настраиваем бота (совместимо с версией 20.x)
+        # Используем порт из переменной окружения или случайный
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port, debug=False)
+    except Exception as e:
+        print(f"❌ Ошибка Flask: {e}")
+
+def run_bot():
+    """Запускает Telegram бота"""
+    try:
+        # Создаем и настраиваем бота
         application = Application.builder().token(TOKEN).build()
         
         # Добавляем обработчики
@@ -175,7 +182,7 @@ def main():
         print("=" * 50)
         print("🤖 Бот запущен на Render.com!")
         print(f"👥 Пользователей: {len(users_db)}")
-        print("🌐 Web сервер: http://0.0.0.0:10000")
+        print("🌐 Web сервер активен")
         print("=" * 50)
         
         # Запускаем бота
@@ -183,9 +190,14 @@ def main():
         
     except Exception as e:
         print(f"❌ Ошибка запуска бота: {e}")
-        print("🔄 Перезапуск через 10 секунд...")
-        time.sleep(10)
-        main()
 
 if __name__ == '__main__':
-    main()
+    # Запускаем Flask в отдельном потоке
+    flask_thread = Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    
+    # Даем время Flask запуститься
+    time.sleep(2)
+    
+    # Запускаем бота в основном потоке
+    run_bot()
