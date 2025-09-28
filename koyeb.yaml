@@ -1,0 +1,9 @@
+name: telegram-bot
+services:
+  - name: bot
+    env:
+      - name: BOT_TOKEN
+        secret: true
+    ports:
+      - port: 8000
+        http_path: /
